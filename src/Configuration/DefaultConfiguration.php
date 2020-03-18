@@ -60,6 +60,7 @@ final class DefaultConfiguration extends AbstractConfiguration
     private $sharedFiles = [];
     private $sharedDirs = [];
     private $resetOpCacheFor;
+    private $symLinkType = 'absolute';
 
     public function __construct(string $localProjectDir)
     {
@@ -355,6 +356,22 @@ final class DefaultConfiguration extends AbstractConfiguration
         }
 
         $this->resetOpCacheFor = rtrim($homepageUrl, '/');
+
+        return $this;
+    }
+
+    //Will create a relative symlink for the current dir instead of an absolute.
+    public function useRelativeSymlinkForCurrent(): self
+    {
+        $this->symLinkType = 'relative';
+
+        return $this;
+    }
+
+    //This is the default
+    public function useAbsoluteSymlinkForCurrent(): self
+    {
+        $this->symLinkType = 'absolute';
 
         return $this;
     }

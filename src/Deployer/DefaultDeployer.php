@@ -396,7 +396,11 @@ abstract class DefaultDeployer extends AbstractDeployer
     private function doCreateSymlink(): void
     {
         $this->log('<h2>Updating the symlink</>');
-        $this->runRemote('rm -f {{ deploy_dir }}/current && ln -s {{ project_dir }} {{ deploy_dir }}/current');
+        if($this->getConfig('symLinkType') === 'relative') {
+            $this->runRemote('export _relative_symlink_path=$(realpath --relative-to={{ deploy_dir }} {{ project_dir }}) && rm -f {{ deploy_dir }}/current && ln -s $_relative_symlink_path {{ deploy_dir }}/current');
+        } else {
+            $this->runRemote('rm -f {{ deploy_dir }}/current && ln -s {{ project_dir }} {{ deploy_dir }}/current');
+        }
     }
 
     private function doResetOpCache(): void
