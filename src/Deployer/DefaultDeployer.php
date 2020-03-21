@@ -282,7 +282,18 @@ abstract class DefaultDeployer extends AbstractDeployer
         foreach ($this->getConfig(Option::sharedDirs) as $sharedDir) {
             $this->runRemote(sprintf('mkdir -p {{ deploy_dir }}/shared/%s', $sharedDir));
             $this->runRemote(sprintf('if [ -d {{ project_dir }}/%s ] ; then rm -rf {{ project_dir }}/%s; fi', $sharedDir, $sharedDir));
-            $this->runRemote(sprintf('ln -nfs {{ deploy_dir }}/shared/%s {{ project_dir }}/%s', $sharedDir, $sharedDir));
+
+            if ($this->getConfig('symLinkType') === 'relative') {
+                $this->runRemote(
+                    sprintf(
+                        'export _relative_path=$(realpath --relative-to={{ project_dir }} {{ deploy_dir }}/shared/%s) && ln -nfs ../$_relative_path %s',
+                        $sharedDir,
+                        $sharedDir
+                    )
+                );
+            } else {
+                $this->runRemote(sprintf('ln -nfs {{ deploy_dir }}/shared/%s {{ project_dir }}/%s', $sharedDir, $sharedDir));
+            }
         }
     }
 
@@ -293,7 +304,18 @@ abstract class DefaultDeployer extends AbstractDeployer
             $sharedFileParentDir = dirname($sharedFile);
             $this->runRemote(sprintf('mkdir -p {{ deploy_dir }}/shared/%s', $sharedFileParentDir));
             $this->runRemote(sprintf('touch {{ deploy_dir }}/shared/%s', $sharedFile));
-            $this->runRemote(sprintf('ln -nfs {{ deploy_dir }}/shared/%s {{ project_dir }}/%s', $sharedFile, $sharedFile));
+
+            if ($this->getConfig('symLinkType') === 'relative') {
+                $this->runRemote(
+                    sprintf(
+                        'export _relative_path=$(realpath --relative-to={{ project_dir }} {{ deploy_dir }}/shared) && ln -nfs $_relative_path/%s',
+                        $sharedFile
+                    )
+                );
+            } else {
+                $this->runRemote(sprintf('ln -nfs {{ deploy_dir }}/shared/%s {{ project_dir }}/%s', $sharedFile, $sharedFile));
+            }
+
         }
     }
 
